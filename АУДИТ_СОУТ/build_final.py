@@ -1,59 +1,31 @@
 # -*- coding: utf-8 -*-
-"""
-Финальная версия заполненного письма с приложениями 1-4 для ООО «Труд-Эксперт».
-Базовый файл: Письмо МИР запрос сведений СОУТ 2020.doc (из main, заполнен ООО «МИР» частично).
+"""ИТОГОВОЕ письмо ООО «МИР» в ООО «Труд-Эксперт» со сведениями для СОУТ
+(Приложения №№ 1–4) — сборка v2, финальный сборщик: агент3, 24.09.2026.
 
-Правки по результатам стресс-аудита (учтены только подтверждённые замечания):
-1. Приложение 1:
-   - КПП исправлен на 616601001; телефон/e-mail в отдельной ячейке (не в ФИО);
-   - ОКАТО уточнён по адресу (Первомайский р-н, 60401378000);
-   - адрес: «зд. 16Е» по ЕГРЮЛ;
-   - название организации — ООО «МИР» (кавычки-ёлочки, прописные, как в ЕГРЮЛ и КДП).
-2. Приложение 2:
-   - формат А4, альбомная ориентация;
-   - 21 колонка (как в бланке ТЭ): молоко и ЛПП — отдельно; добавлена колонка
-     «Количество аналогичных рабочих мест» (стоит «1» у однотипных офисных, как
-     в исходном заполнении ООО «МИР»);
-   - восстановлен групповой заголовок «Гарантии и компенсации...»;
-   - подписи колонок восстановлены ближе к бланку ТЭ;
-   - сноска * у графы оборудования (как в бланке);
-   - оборудование/сырьё/зона заполнены по всем 25 работникам;
-   - проценты суммируются до 100% и не противоречат зоне;
-   - у водителя Суржа А.В. восстановлено «ГАЗ, АИ-92» с пометкой [уточнить ГБО];
-   - у грузчика пресс описан как оборудование для подачи/увязки, а не
-     самостоятельная работа оператора (соответствует Приложению 3);
-   - у механика сварочный аппарат — эпизодически;
-   - у трёх одинаковых DongFeng Z55L описание оборудования единообразное;
-   - у водителей: не придумываем тахограф/ГЛОНАСС, ставим [уточнить];
-   - у охраны: видеонаблюдение/СКУД оставлены (упоминаются в Блоке 4 ОТ);
-     рация и стационарный пульт помечены [уточнить];
-   - графа медосмотра: у начальника производства — [уточнить];
-   - в графе «Класс условий труда по пред. СОУТ» — «не присвоен (первая СОУТ)»
-     вместо пустоты (чтобы ТЭ не вернул за незаполнение);
-   - подпись председателя: ФИО полностью;
-   - колонка «Женщины» — «да»/«—» (как в исходной форме заполняла МИР).
-3. Приложение 3:
-   - «документационного сопровождения» (исправлена опечатка «обеспечения»);
-   - подпись председателя — ФИО полностью;
-   - «ОП ООО «Мир»» с кавычками единообразно;
-   - описания разбиты на 2–3 предложения для читаемости.
-4. Приложение 4:
-   - должность Максимовой — «Специалист по кадрам»;
-   - ФИО всех членов комиссии — полностью.
-5. В начале добавлено короткое сопроводительное письмо от ООО «МИР» в адрес ТЭ
-   (без этого — МИР вернёт подрядчику его же письмо).
-6. Перед Приложениями добавлена сводка по остальным запрошенным документам
-   (приказ, ШР, сведения о предыдущей СОУТ, производственный контроль).
+Документ собирается этим скриптом полностью: `python build_final.py`.
+
+Правки v2 относительно предыдущей сборки (проверено по факту, не по описанию):
+  1. вёрстка таблиц: ширины колонок записаны и в tblGrid, и в каждую ячейку,
+     включён фиксированный макет, сумма ширин нормализована под полосу печати
+     (было: сетка 22 × 1,21 см при задуманных 38,69 см — таблица не читалась);
+  2. порядок секций: Приложение № 2 идёт вторым (альбомная секция A4), а не после № 4;
+  3. ОКАТО возвращён к значению организации 60401000000 (согласован с ОКТМО
+     60701000001); районный код 60 401 378 000 (Первомайский) вынесен в примечание;
+  4. сноска «*» — только у графы оборудования, текст сноски приведён к бланку ТЭ;
+  5. отчества членов комиссии не выдуманы (в репозитории их нет) — помечены [уточнить];
+  6. поля [уточнить] добавлены там, где графа требует модель/год/инв. № (офисная техника);
+  7. типографика адресов, «контора», разнобой описаний DongFeng, формулировка у грузчика;
+  8. нумерация страниц, реквизиты «Исх. №», свойства документа, единые поля A4.
 """
 from docx import Document
-from docx.shared import Pt, Cm, Mm
+from docx.shared import Pt, Cm, Mm, Emu
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.section import WD_ORIENTATION, WD_SECTION
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
-OUT = "/home/user/MIR/00_АУДИТ_СОУТ/ГОТОВОЕ_Письмо_МИР_заполненное_СОУТ.docx"
+OUT = "/home/user/MIR/АУДИТ_СОУТ/ГОТОВОЕ_Письмо_МИР_заполненное_СОУТ.docx"
 
 # ------------------------------------------------------------------
 # ОРГАНИЗАЦИЯ
@@ -68,12 +40,13 @@ ORG = {
     "email": "buh@ooomir.org",
     "inn": "6166094734",
     "kpp": "616601001",
-    "okpo": "27168779",
+    "okpo": "27168779 [уточнить по уведомлению Росстата]",
     "okogu": "4210014",
     "okved": "38.32.5 — Утилизация вторичных неметаллических ресурсов во вторичное сырье",
     "ogrn": "1156196053881",
     "oktmo": "60701000001",
-    "okato": "60401378000",  # Первомайский район г. Ростова-на-Дону (ул. Туполева)
+    "fax": "отсутствует",
+    "okato": "60401000000",  # код гор. округа «г. Ростов-на-Дону» — как в перечне организации и в паре с ОКТМО 60701000001
 }
 
 # ------------------------------------------------------------------
@@ -337,191 +310,379 @@ DUTIES = [
  "Уборка производственного помещения; соблюдение правил ОТ и ПБ."),
 ]
 
-# ------------------------------------------------------------------
-# ФУНКЦИИ
-# ------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
+# ПОЛИРОВКА ДАННЫХ (правки по итогам аудита, применяются к ROWS/DUTIES)
+# ----------------------------------------------------------------------
+_TEXT_FIXES = [
+    # типографика адресов в ячейках
+    ("зд.16Е, оф.4.13", "зд. 16Е, оф. 4.13"),
+    ("Пороховая Балка, д.2", "Пороховая Балка, д. 2"),
+    # офисная техника: графа требует модель/год/инв. № — помечаем уточнением
+    ("Персональный компьютер, МФУ формата А4",
+     "Персональный компьютер, МФУ формата А4 (модель, год выпуска, инв. № [уточнить])"),
+    ("Персональный компьютер (ноутбук), МФУ, телефонная связь",
+     "Персональный компьютер (ноутбук), МФУ формата А4, мобильный телефон (модель, инв. № [уточнить])"),
+    # начальник производства: разговорное «контора» -> официальный термин
+    ("Персональный компьютер в конторе", "Персональный компьютер и МФУ в административно-бытовом помещении"),
+    # водители DongFeng: единая формулировка у всех трёх одинаковых ТС
+    ("вспомогательные приспособления для крепления груза (стяжные ремни)",
+     "стяжные ремни для крепления груза"),
+    ("тахограф [уточнить: установлен ли]", "тахограф [уточнить]"),
+    # грузчик: убрать нагромождение «— [уточнить] %; ... — оставшееся время»
+    ("подача вторичного сырья в загрузочную зону пресса BIZON HP60M и съём готовых кип "
+     "[уточнить: инв. №, год выпуска, процент работы в зоне пресса] — [уточнить] %; "
+     "ручные погрузочно-разгрузочные работы — оставшееся время",
+     "подача вторичного сырья в загрузочную зону пресса BIZON HP60M и съём готовых кип "
+     "(инв. № и год выпуска пресса, доля времени в зоне прессования [уточнить]); "
+     "ручные погрузочно-разгрузочные работы — остальное время"),
+]
+
+# поля, которые нужно прогонять через правки: оборудование(5), сырьё(6), зона(9), класс(10)
+_TEXT_FIELDS = (5, 6, 9, 10)
+
+def _fix(s):
+    for old, new in _TEXT_FIXES:
+        s = s.replace(old, new)
+    return s
+
+ROWS = [list(r) for r in ROWS]
+for _r in ROWS:
+    for _i in _TEXT_FIELDS:
+        _r[_i] = _fix(_r[_i])
+    if _r[1] == "Начальник производства":          # единый формат пометки по медосмотру
+        _r[20] = "[уточнить пункт приказа 29н]"
+# «Персональный компьютер, МФУ формата А4» встречается и в строках кассиров, где уже есть
+# своя пометка по ККТ — правка не должна ломать перечисление, поэтому проверяем длину
+for _r in ROWS:
+    if "[уточнить]" in _r[5] and "модель, год выпуска, инв. №" in _r[5] and _r[5].count("[уточнить]") > 2:
+        _r[5] = _r[5].replace(" (модель, год выпуска, инв. № [уточнить])", "")
+
+DUTIES = [(podr, ("Специалист по кадрам (в Приложении № 2 — «Спец. по кадрам»)"
+                  if dolg == "Специалист по кадрам" else dolg), desc)
+          for podr, dolg, desc in DUTIES]
+
+# члены комиссии: полные Ф.И.О. требует ТЭ, но отчества ничем в репозитории
+# не подтверждаются — не выдумываем, оставляем инициалы с пометкой
+COMMISSION = [
+    ("Руководитель группы документационного сопровождения", "Спичак Т.В. [уточнить: Ф.И.О. полностью]"),
+    ("Специалист по кадрам", "Максимова Л.В. [уточнить: Ф.И.О. полностью]"),
+]
+
+
+W = qn  # короткое имя
+
+# ----------------------------------------------------------------------
+# НИЗКОУРОВНЕВЫЕ ХЕЛПЕРЫ
+# ----------------------------------------------------------------------
+def _el(tag, **attrs):
+    e = OxmlElement('w:' + tag)
+    for k, v in attrs.items():
+        e.set(qn('w:' + k), str(v))
+    return e
+
+
+def _insert_ordered(parent, child, order):
+    """Вставить child в parent с соблюдением порядка children из `order`."""
+    tag = child.tag
+    idx = order.index(tag)
+    for existing in list(parent):
+        if existing.tag in order and order.index(existing.tag) > idx:
+            existing.addprevious(child)
+            return child
+    parent.append(child)
+    return child
+
+
+TCPR_ORDER = [qn('w:' + t) for t in (
+    'cnfStyle', 'tcW', 'gridSpan', 'hMerge', 'vMerge', 'tcBorders', 'shd', 'noWrap',
+    'tcMar', 'textDirection', 'tcFitText', 'vAlign', 'hideMark')]
+TRPR_ORDER = [qn('w:' + t) for t in ('cnfStyle', 'divId', 'gridBefore', 'gridAfter',
+                                     'wBefore', 'wAfter', 'cantSplit', 'trHeight',
+                                     'tblHeader', 'tblCellSpacing', 'jc', 'hidden')]
+TBLPR_ORDER = [qn('w:' + t) for t in ('tblStyle', 'tblpPr', 'tblOverlap', 'bidiVisual',
+                                      'tblStyleRowBandSize', 'tblStyleColBandSize', 'tblW',
+                                      'jc', 'tblCellSpacing', 'tblInd', 'tblBorders',
+                                      'shd', 'tblLayout', 'tblCellMar', 'tblLook',
+                                      'tblCaption', 'tblDescription')]
+
+
 def _run(p, text, bold=False, size=10, italic=False):
     r = p.add_run(text)
-    r.bold = bold
-    r.italic = italic
+    r.bold, r.italic = bold, italic
     r.font.name = 'Times New Roman'
     r.font.size = Pt(size)
     rPr = r._element.get_or_add_rPr()
-    rFonts = rPr.find(qn('w:rFonts'))
-    if rFonts is None:
-        rFonts = OxmlElement('w:rFonts')
-        rPr.append(rFonts)
-    rFonts.set(qn('w:eastAsia'),'Times New Roman')
-    rFonts.set(qn('w:ascii'),'Times New Roman')
-    rFonts.set(qn('w:hAnsi'),'Times New Roman')
+    rf = rPr.find(qn('w:rFonts'))
+    if rf is None:
+        rf = OxmlElement('w:rFonts'); rPr.insert(0, rf)
+    for a in ('w:ascii', 'w:hAnsi', 'w:cs', 'w:eastAsia'):
+        rf.set(qn(a), 'Times New Roman')
     return r
 
-def _par(doc, text="", bold=False, size=10, align=None, italic=False, space_after=None):
+
+def _par(doc, text="", bold=False, size=10, align=None, italic=False,
+         space_after=None, space_before=None, keep_with_next=False):
     p = doc.add_paragraph()
     if align is not None:
         p.alignment = align
+    pf = p.paragraph_format
     if space_after is not None:
-        p.paragraph_format.space_after = Pt(space_after)
+        pf.space_after = Pt(space_after)
+    if space_before is not None:
+        pf.space_before = Pt(space_before)
+    if keep_with_next:
+        pf.keep_with_next = True
     if text:
         _run(p, text, bold=bold, size=size, italic=italic)
     return p
 
-def set_cell_borders(cell, sz="4"):
-    tcPr = cell._tc.get_or_add_tcPr()
-    existing = tcPr.find(qn('w:tcBorders'))
-    if existing is not None:
-        tcPr.remove(existing)
-    tcBorders = OxmlElement('w:tcBorders')
-    for edge in ('top','left','bottom','right','insideH','insideV'):
-        b = OxmlElement(f'w:{edge}')
-        b.set(qn('w:val'),'single')
-        b.set(qn('w:sz'),sz)
-        b.set(qn('w:space'),'0')
-        b.set(qn('w:color'),'000000')
-        tcBorders.append(b)
-    tcPr.append(tcBorders)
 
-def set_cell_shading(cell, fill="D9D9D9"):
+def cell_borders(cell, sz="4", color="000000"):
     tcPr = cell._tc.get_or_add_tcPr()
-    shd = OxmlElement('w:shd')
-    shd.set(qn('w:val'),'clear')
-    shd.set(qn('w:color'),'auto')
-    shd.set(qn('w:fill'),fill)
-    tcPr.append(shd)
+    old = tcPr.find(qn('w:tcBorders'))
+    if old is not None:
+        tcPr.remove(old)
+    b = OxmlElement('w:tcBorders')
+    for edge in ('top', 'left', 'bottom', 'right'):
+        b.append(_el(edge, val='single', sz=sz, space=0, color=color))
+    _insert_ordered(tcPr, b, TCPR_ORDER)
 
-def set_row_header(row):
+
+def cell_shading(cell, fill="D9D9D9"):
+    tcPr = cell._tc.get_or_add_tcPr()
+    old = tcPr.find(qn('w:shd'))
+    if old is not None:
+        tcPr.remove(old)
+    _insert_ordered(tcPr, _el('shd', val='clear', color='auto', fill=fill), TCPR_ORDER)
+
+
+def row_is_header(row):
     trPr = row._tr.get_or_add_trPr()
-    tblHeader = OxmlElement('w:tblHeader')
-    trPr.append(tblHeader)
-    # Don't break row across pages
-    cantSplit = OxmlElement('w:cantSplit')
-    trPr.append(cantSplit)
+    if trPr.find(qn('w:tblHeader')) is None:
+        _insert_ordered(trPr, OxmlElement('w:tblHeader'), TRPR_ORDER)
 
-def set_col_width(cell, width_cm):
-    cell.width = Cm(width_cm)
-    tcPr = cell._tc.get_or_add_tcPr()
-    tcW = OxmlElement('w:tcW')
-    tcW.set(qn('w:w'), str(int(width_cm*567)))  # twips
-    tcW.set(qn('w:type'), 'dxa')
-    # remove existing
-    existing = tcPr.find(qn('w:tcW'))
-    if existing is not None:
-        tcPr.remove(existing)
-    tcPr.append(tcW)
 
-def write_cell(cell, text, bold=False, size=8, align=None, vertical=WD_ALIGN_VERTICAL.CENTER):
+def write_cell(cell, text, bold=False, size=8, align=None,
+               vertical=WD_ALIGN_VERTICAL.TOP):
     cell.text = ""
-    # First paragraph — set alignment and content
-    p = cell.paragraphs[0]
-    if align is not None:
-        p.alignment = align
-    p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(0)
-    _run(p, text, bold=bold, size=size)
+    lines = text.split("\n")
+    for i, ln in enumerate(lines):
+        p = cell.paragraphs[0] if i == 0 else cell.add_paragraph()
+        if align is not None:
+            p.alignment = align
+        pf = p.paragraph_format
+        pf.space_before = Pt(0)
+        pf.space_after = Pt(0)
+        pf.line_spacing = 1.0
+        _run(p, ln, bold=bold, size=size)
     cell.vertical_alignment = vertical
-    set_cell_borders(cell)
+    cell_borders(cell)
 
-def _set_section_A4_portrait(section):
-    section.orientation = WD_ORIENTATION.PORTRAIT
-    section.page_width = Mm(210)
-    section.page_height = Mm(297)
-    section.top_margin = Cm(1.5)
-    section.bottom_margin = Cm(1.5)
-    section.left_margin = Cm(2)
-    section.right_margin = Cm(1)
 
-def _set_section_A4_landscape(section):
-    section.orientation = WD_ORIENTATION.LANDSCAPE
-    section.page_width = Mm(297)
-    section.page_height = Mm(210)
-    section.top_margin = Cm(1.5)
-    section.bottom_margin = Cm(1.5)
-    section.left_margin = Cm(1.5)
-    section.right_margin = Cm(1.5)
+def apply_layout(table, widths_cm, usable_cm, cell_mar_cm=0.10, font=None):
+    """Нормализовать ширины под доступную ширину полосы и записать их
+    в tblGrid И в каждую ячейку (с учётом gridSpan); включить fixed-макет."""
+    total = float(sum(widths_cm))
+    k = usable_cm / total
+    w = [x * k for x in widths_cm]
+    tw = [int(round(x / 2.54 * 1440)) for x in w]           # twips
+    tw[-1] += int(round(usable_cm / 2.54 * 1440)) - sum(tw)  # точная сумма
+    tbl = table._tbl
+    tblPr = tbl.tblPr
+    # layout fixed
+    old = tblPr.find(qn('w:tblLayout'))
+    if old is not None:
+        tblPr.remove(old)
+    _insert_ordered(tblPr, _el('tblLayout', type='fixed'), TBLPR_ORDER)
+    # общая ширина
+    old = tblPr.find(qn('w:tblW'))
+    if old is not None:
+        tblPr.remove(old)
+    _insert_ordered(tblPr, _el('tblW', w=sum(tw), type='dxa'), TBLPR_ORDER)
+    old = tblPr.find(qn('w:tblInd'))
+    if old is not None:
+        tblPr.remove(old)
+    _insert_ordered(tblPr, _el('tblInd', w=0, type='dxa'), TBLPR_ORDER)
+    # поля ячеек
+    old = tblPr.find(qn('w:tblCellMar'))
+    if old is not None:
+        tblPr.remove(old)
+    mar = OxmlElement('w:tblCellMar')
+    m = int(round(cell_mar_cm / 2.54 * 1440))
+    for side in ('top', 'left', 'bottom', 'right'):
+        e = OxmlElement('w:' + side)
+        e.set(qn('w:w'), str(m if side in ('left', 'right') else 14))
+        e.set(qn('w:type'), 'dxa')
+        mar.append(e)
+    _insert_ordered(tblPr, mar, TBLPR_ORDER)
+    # сетка
+    grid = tbl.find(qn('w:tblGrid'))
+    if grid is not None:
+        tbl.remove(grid)
+    grid = OxmlElement('w:tblGrid')
+    for x in tw:
+        grid.append(_el('gridCol', w=x))
+    tbl.insert(list(tbl).index(tblPr) + 1, grid)
+    # ширины ячеек
+    for row in table.rows:
+        tr = row._tr
+        col = 0
+        for tc in tr.findall(qn('w:tc')):
+            tcPr = tc.find(qn('w:tcPr'))
+            if tcPr is None:
+                tcPr = OxmlElement('w:tcPr'); tc.insert(0, tcPr)
+            gs = tcPr.find(qn('w:gridSpan'))
+            span = int(gs.get(qn('w:val'))) if gs is not None else 1
+            width = sum(tw[col:col + span])
+            old = tcPr.find(qn('w:tcW'))
+            if old is not None:
+                tcPr.remove(old)
+            tcW = _el('tcW', w=width, type='dxa')
+            _insert_ordered(tcPr, tcW, TCPR_ORDER)
+            col += span
+    return w
 
-def _set_lang_ru(doc):
-    styles_el = doc.styles.element
-    # Set default language to ru-RU via settings
-    return
 
+def set_page(section, landscape=False, margin_lr=1.5, margin_tb=1.5):
+    section.orientation = WD_ORIENTATION.LANDSCAPE if landscape else WD_ORIENTATION.PORTRAIT
+    if landscape:
+        section.page_width, section.page_height = Mm(297), Mm(210)
+    else:
+        section.page_width, section.page_height = Mm(210), Mm(297)
+    section.left_margin = section.right_margin = Cm(margin_lr)
+    section.top_margin = section.bottom_margin = Cm(margin_tb)
+    section.header_distance = Cm(0.8)
+    section.footer_distance = Cm(0.8)
+
+
+def usable_width(section):
+    return (int(section.page_width) - int(section.left_margin) - int(section.right_margin)) / 360000.0
+
+
+def add_page_field(paragraph, label_prefix="Стр. "):
+    _run(paragraph, label_prefix, size=8)
+    fld = OxmlElement('w:fldSimple')
+    fld.set(qn('w:instr'), ' PAGE ')
+    r = OxmlElement('w:r'); rPr = OxmlElement('w:rPr')
+    rf = _el('rFonts'); rf.set(qn('w:ascii'), 'Times New Roman'); rf.set(qn('w:hAnsi'), 'Times New Roman')
+    sz = _el('sz'); sz.set(qn('w:val'), '16')
+    rPr.append(rf); rPr.append(sz); r.append(rPr)
+    t = OxmlElement('w:t'); t.text = '1'; r.append(t); fld.append(r)
+    paragraph._p.append(fld)
+    _run(paragraph, " из ", size=8)
+    fld2 = OxmlElement('w:fldSimple')
+    fld2.set(qn('w:instr'), ' NUMPAGES ')
+    r2 = OxmlElement('w:r'); rPr2 = OxmlElement('w:rPr')
+    rf2 = _el('rFonts'); rf2.set(qn('w:ascii'), 'Times New Roman'); rf2.set(qn('w:hAnsi'), 'Times New Roman')
+    sz2 = _el('sz'); sz2.set(qn('w:val'), '16')
+    rPr2.append(rf2); rPr2.append(sz2); r2.append(rPr2)
+    t2 = OxmlElement('w:t'); t2.text = '1'; r2.append(t2); fld2.append(r2)
+    paragraph._p.append(fld2)
+
+
+# ----------------------------------------------------------------------
+# СБОРКА
+# ----------------------------------------------------------------------
 def build():
     doc = Document()
-    # Default style
-    style = doc.styles['Normal']
-    style.font.name = 'Times New Roman'
-    style.font.size = Pt(10)
-    rPr = style.element.get_or_add_rPr()
-    rFonts = rPr.find(qn('w:rFonts'))
-    if rFonts is None:
-        rFonts = OxmlElement('w:rFonts'); rPr.append(rFonts)
-    rFonts.set(qn('w:eastAsia'),'Times New Roman')
-    rFonts.set(qn('w:ascii'),'Times New Roman')
-    rFonts.set(qn('w:hAnsi'),'Times New Roman')
 
-    # Set RU language globally
-    from docx.oxml import OxmlElement as _O
-    settings = doc.settings.element
-    lang = settings.find(qn('w:lang'))
-    if lang is None:
-        lang = _O('w:lang'); settings.append(lang)
-    lang.set(qn('w:val'),'ru-RU')
-    lang.set(qn('w:eastAsia'),'ru-RU')
-    lang.set(qn('w:bidi'),'ar-SA')
+    # базовый стиль
+    st = doc.styles['Normal']
+    st.font.name = 'Times New Roman'
+    st.font.size = Pt(10)
+    rPr = st.element.get_or_add_rPr()
+    rf = rPr.find(qn('w:rFonts'))
+    if rf is None:
+        rf = OxmlElement('w:rFonts'); rPr.insert(0, rf)
+    for a in ('w:ascii', 'w:hAnsi', 'w:cs', 'w:eastAsia'):
+        rf.set(qn(a), 'Times New Roman')
+    st.paragraph_format.space_after = Pt(4)
 
-    # Section 1: cover letter + Прил. 1 + Прил. 3 + Прил. 4 — A4 portrait
+    # язык проверки орфографии для всего документа
+    lang = OxmlElement('w:themeFontLang')
+    lang.set(qn('w:val'), 'ru-RU')
+    doc.settings.element.append(lang)
+
+    # свойства документа
+    cp = doc.core_properties
+    cp.title = "Сведения для проведения СОУТ (Приложения №№ 1–4), ООО «МИР»"
+    cp.subject = "СОУТ 2026"
+    cp.author = "ООО «МИР»"
+    cp.comments = "Черновик для корректировки по факту; поля [уточнить] заполняются организацией."
+
     sec1 = doc.sections[0]
-    _set_section_A4_portrait(sec1)
+    set_page(sec1, landscape=False, margin_lr=1.8, margin_tb=1.5)
+    u1 = usable_width(sec1)          # ~17,4 см
 
-    # -------- Шапка от ООО «МИР» --------
-    _par(doc, ORG["full"], bold=True, size=11, align=WD_ALIGN_PARAGRAPH.RIGHT)
-    _par(doc, f"ОГРН {ORG['ogrn']} · ИНН {ORG['inn']} · КПП {ORG['kpp']}", size=9, align=WD_ALIGN_PARAGRAPH.RIGHT)
-    _par(doc, ORG["adr_ur"], size=9, align=WD_ALIGN_PARAGRAPH.RIGHT)
-    _par(doc, f"Тел. {ORG['tel']}, e-mail: {ORG['email']}", size=9, align=WD_ALIGN_PARAGRAPH.RIGHT)
-    _par(doc, "")
-    _par(doc, "Кому: ООО «Труд-Эксперт»", bold=True)
-    _par(doc, "344113, г. Ростов-на-Дону, ул. Орбитальная, 36")
-    _par(doc, "e-mail: trud-expert@bk.ru", size=10)
-    _par(doc, "")
-    _par(doc, "О заполненных сведениях для проведения специальной оценки условий труда",
-         bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-    _par(doc, "")
-    _par(doc,
-         "Уважаемые коллеги!")
-    _par(doc,
-         "На Ваше письмо от 30.01.2026 (вх. № б/н) и повторные запросы от 24.04.2026 и 10.07.2026 "
-         "направляем заполненные сведения по форме Приложений №№ 1–4 для проведения специальной оценки условий труда в ООО «МИР» по состоянию на 11.02.2026.")
-    _par(doc, "Сведения по остальным пунктам Вашего запроса:")
-    _par(doc,
-         "— Копия приказа об организации и проведении СОУТ (№ 2 от 12.01.2026) и действующее штатное расписание — прилагаются отдельно к настоящему комплекту.",
-         size=10)
-    _par(doc,
-         "— Сводная ведомость результатов проведения специальной оценки условий труда по предыдущей СОУТ — не предоставляется, СОУТ в ООО «МИР» проводится впервые.",
-         size=10)
-    _par(doc,
-         "— Результаты ранее проводившихся на рабочих местах исследований (испытаний) и измерений вредных и (или) опасных производственных факторов в рамках производственного контроля за условиями труда, а также результаты федерального государственного санитарно-эпидемиологического надзора — отсутствуют.",
-         size=10)
-    _par(doc,
-         "Поля, в которых точные сведения могут быть установлены только по месту (инвентарные номера оборудования, год выпуска отдельных единиц техники, категория транспортных средств по СТС, пункты приказа Минздрава России № 29н по медосмотрам, наличие и тип ГБО на отдельных ТС, фактические проценты выполнения отдельных операций), отмечены пометкой [уточнить]. Организация уточнит эти сведения при подписании экземпляра на бумаге и при обеспечении доступа экспертов на рабочие места.")
-    _par(doc, "")
-    _par(doc, "Приложения:")
-    _par(doc, "  1. Сведения об организации (Приложение № 1);", size=10)
-    _par(doc, "  2. Сведения о работниках, гарантиях и компенсациях, производственных характеристиках РМ (Приложение № 2);", size=10)
-    _par(doc, "  3. Сведения об обязанностях работника (Приложение № 3);", size=10)
-    _par(doc, "  4. Сведения о предложениях работников (Приложение № 4).", size=10)
-    _par(doc, "")
-    _par(doc, "С уважением,")
-    _par(doc, "Генеральный директор ООО «МИР» _______________ / Блашковский Евгений Геннадьевич /", align=WD_ALIGN_PARAGRAPH.RIGHT)
-    _par(doc, "")
-    _par(doc, "")
+    # колонтитул с нумерацией
+    fp = sec1.footer.paragraphs[0]
+    fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    add_page_field(fp)
 
-    # ---------- Приложение 1 ----------
-    _par(doc, "Приложение № 1", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-    _par(doc, "Сведения об организации", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-    _par(doc, "")
+    # ============================ ПИСЬМО ==============================
+    _par(doc, ORG["full"], bold=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
+    _par(doc, f"ОГРН {ORG['ogrn']} · ИНН {ORG['inn']} · КПП {ORG['kpp']}", size=9,
+         align=WD_ALIGN_PARAGRAPH.CENTER, space_after=0)
+    _par(doc, ORG["adr_ur"], size=9, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=0)
+    _par(doc, f"Тел. {ORG['tel']}, e-mail: {ORG['email']}", size=9,
+         align=WD_ALIGN_PARAGRAPH.CENTER, space_after=8)
+    _par(doc, f"Исх. № ______ от «___» _________ 2026 г.", size=10, space_after=8)
+    _par(doc, "ООО «Труд-Эксперт»", bold=True, size=10, space_after=0)
+    _par(doc, "344113, г. Ростов-на-Дону, ул. Орбитальная, д. 36", size=10, space_after=0)
+    _par(doc, "e-mail: trud-expert@bk.ru", size=10, space_after=8)
+    _par(doc, "О заполненных сведениях, необходимых для проведения", bold=True, size=10,
+         align=WD_ALIGN_PARAGRAPH.CENTER, space_after=0)
+    _par(doc, "специальной оценки условий труда", bold=True, size=10,
+         align=WD_ALIGN_PARAGRAPH.CENTER, space_after=8)
+    _par(doc, "Уважаемые коллеги!", space_after=6)
+    _par(doc,
+         "На Ваше письмо от 30.01.2026 и повторные запросы от 24.04.2026 и 10.07.2026 "
+         "направляем заполненные сведения по формам Приложений №№ 1–4 для проведения "
+         "специальной оценки условий труда в ООО «МИР» по состоянию на 11.02.2026 "
+         "(перечень рабочих мест — по направленному Вами списку).")
+    _par(doc, "Сведения по остальным пунктам Вашего запроса:", space_after=2)
+    for line in (
+        "— копия приказа об организации и проведении специальной оценки условий труда "
+        "(№ 2 от 12.01.2026) и копия действующего штатного расписания прилагаются к настоящему "
+        "письму отдельными файлами и будут заверены при подписании;",
+        "— сводная ведомость результатов проведения СОУТ по предыдущей СОУТ не предоставляется: "
+        "специальная оценка условий труда в ООО «МИР» проводится впервые;",
+        "— результаты ранее проводившихся на рабочих местах исследований (измерений) вредных и "
+        "(или) опасных производственных факторов в рамках производственного контроля, а также "
+        "результаты федерального государственного санитарно-эпидемиологического надзора отсутствуют;",
+        "— должностные инструкции в ООО «МИР» не разрабатываются, их заменяет Приложение № 3 "
+        "«Сведения об обязанностях работника».",
+    ):
+        _par(doc, line, size=10, space_after=2)
+    _par(doc,
+         "Сведения, которые могут быть установлены только по месту эксплуатации оборудования "
+         "(инвентарные номера, год выпуска отдельных единиц техники, категория транспортного "
+         "средства по СТС, пункт приложения к приказу Минздрава России от 28.01.2021 № 29н по "
+         "медосмотрам, наличие ГБО, фактические доли времени по отдельным операциям), отмечены "
+         "пометкой [уточнить] и будут уточнены организацией при подписании бумажного экземпляра "
+         "и при обеспечении доступа экспертов на рабочие места.", size=10)
+    _par(doc, "", space_after=4)
+    _par(doc, "Приложения:", bold=True, space_after=2)
+    for i, t in enumerate([
+        "сведения об организации (Приложение № 1) — на 1 л.;",
+        "сведения о работниках, гарантиях и компенсациях, производственных характеристиках "
+        "рабочих мест (Приложение № 2) — на ___ л.;",
+        "сведения об обязанностях работника (Приложение № 3) — на 1 л.;",
+        "сведения о предложениях работников (Приложение № 4) — на 1 л.;",
+        "копия приказа об организации и проведении СОУТ № 2 от 12.01.2026 — на ___ л.;",
+        "копия штатного расписания (ШР-2026) — на ___ л.",
+    ], start=1):
+        _par(doc, f"{i}. {t}", size=10, space_after=0)
+    _par(doc, "", space_after=6)
+    _par(doc, "С уважением,", space_after=2)
+    p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    _run(p, "Генеральный директор ООО «МИР» _________________________ / " + ORG["dir"] + " /", size=10)
+    doc.add_page_break()
 
-    t1 = doc.add_table(rows=0, cols=2)
-    t1.autofit = False
-    t1.columns[0].width = Cm(6.5); t1.columns[1].width = Cm(11.5)
+    # ====================== ПРИЛОЖЕНИЕ № 1 ============================
+    _par(doc, "Приложение № 1", bold=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
+    _par(doc, "Сведения об организации", bold=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=8)
     rows_app1 = [
         ("Полное наименование организации", ORG["full"]),
         ("Сокращенное наименование организации", ORG["short"]),
@@ -529,218 +690,210 @@ def build():
         ("Место осуществления деятельности (фактический адрес)", ORG["adr_fact"]),
         ("ФИО руководителя (полностью)", ORG["dir"]),
         ("Телефон", ORG["tel"]),
-        ("Факс", "отсутствует"),
+        ("Факс", ORG["fax"]),
         ("Адрес электронной почты", ORG["email"]),
         ("ИНН", ORG["inn"]),
         ("КПП", ORG["kpp"]),
         ("ОГРН", ORG["ogrn"]),
-        ("ОКПО", ORG["okpo"] + " [уточнить по уведомлению Росстата]"),
+        ("ОКПО", ORG["okpo"]),
         ("ОКОГУ", ORG["okogu"]),
         ("ОКВЭД (основной)", ORG["okved"]),
-        ("ОКАТО", ORG["okato"] + " [уточнить по уведомлению Росстата]"),
+        ("ОКАТО", ORG["okato"]),
         ("ОКТМО", ORG["oktmo"]),
     ]
-    for k, v in rows_app1:
-        row = t1.add_row()
-        write_cell(row.cells[0], k, bold=True, size=10, align=WD_ALIGN_PARAGRAPH.LEFT, vertical=WD_ALIGN_VERTICAL.TOP)
-        write_cell(row.cells[1], v, size=10, align=WD_ALIGN_PARAGRAPH.LEFT, vertical=WD_ALIGN_VERTICAL.TOP)
-        set_col_width(row.cells[0], 6.5); set_col_width(row.cells[1], 11.5)
-    _par(doc, "")
+    t1 = doc.add_table(rows=len(rows_app1), cols=2)
+    for i, (k, v) in enumerate(rows_app1):
+        write_cell(t1.rows[i].cells[0], k, bold=True, size=10, vertical=WD_ALIGN_VERTICAL.TOP)
+        write_cell(t1.rows[i].cells[1], v, size=10, vertical=WD_ALIGN_VERTICAL.TOP)
+    apply_layout(t1, [6.2, 11.2], u1, cell_mar_cm=0.15)
+    _par(doc, "Примечание: ОКАТО/ОКТМО указаны по коду городского округа «город Ростов-на-Дону», "
+              "как в перечне организации; при необходимости территориального уточнения (ул. Туполева "
+              "относится к Первомайскому району — 60 401 378 000) организация уточнит коды по "
+              "уведомлению территориального органа Росстата.", size=9, italic=True, space_before=6)
     doc.add_page_break()
 
-    # ---------- Приложение 3 (идёт перед Прил. 2, т.к. Прил.2 — альбомный) ----------
-    _par(doc, "Приложение № 3", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-    _par(doc, f"Сведения об обязанностях работника в {ORG['short']} по состоянию на 11.02.2026",
-         bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-    _par(doc, "")
+    # ================= ПРИЛОЖЕНИЕ № 2 (альбом) =========================
+    sec2 = doc.add_section(WD_SECTION.NEW_PAGE)
+    set_page(sec2, landscape=True, margin_lr=1.0, margin_tb=1.2)
+    u2 = usable_width(sec2)          # ~27,7 см
 
-    t3 = doc.add_table(rows=1, cols=4)
-    h3 = ["№ п/п", "Подразделение организации", "Наименование должности (профессии)", "Краткое описание работы"]
-    for i,h in enumerate(h3):
-        write_cell(t3.rows[0].cells[i], h, bold=True, size=9, align=WD_ALIGN_PARAGRAPH.CENTER)
-        set_cell_shading(t3.rows[0].cells[i])
-        set_col_width(t3.rows[0].cells[i], [1.0, 4.0, 4.5, 8.0][i])
-    set_row_header(t3.rows[0])
+    _par(doc, "Приложение № 2", bold=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
+    _par(doc, "Сведения о работниках, фактически предоставляемых работникам гарантиях и компенсациях, "
+              f"производственных характеристиках рабочих мест, подлежащих специальной оценке условий труда "
+              f"в {ORG['short']} по состоянию на 11.02.2026",
+         bold=True, size=10, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=6)
 
-    for i,(podr,dolg,desc) in enumerate(DUTIES, start=1):
-        row = t3.add_row()
-        for j,v in enumerate([str(i), podr, dolg, desc]):
-            write_cell(row.cells[j], v, size=9, align=WD_ALIGN_PARAGRAPH.LEFT if j>=2 else WD_ALIGN_PARAGRAPH.CENTER,
-                       vertical=WD_ALIGN_VERTICAL.TOP)
-            set_col_width(row.cells[j], [1.0, 4.0, 4.5, 8.0][j])
-    _par(doc, "")
-    _par(doc, "Председатель комиссии по проведению специальной оценки условий труда _______________ / Блашковский Евгений Геннадьевич /")
-    _par(doc, "")
-    doc.add_page_break()
-
-    # ---------- Приложение 4 ----------
-    _par(doc, "Приложение № 4", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-    _par(doc, "Сведения о предложениях работников по осуществлению на их рабочих местах идентификации потенциально вредных и (или) опасных производственных факторов", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-    _par(doc, "")
-    _par(doc,
-         "В соответствии с Федеральным законом Российской Федерации от 28.12.2013 № 426-ФЗ «О специальной оценке условий труда» и в целях соблюдения прав работников при проведении СОУТ комиссия провела опрос работников по осуществлению на их рабочих местах идентификации потенциально вредных и (или) опасных производственных факторов.")
-    _par(doc, "Предложений от работников не поступало.", bold=True)
-    _par(doc, "")
-    _par(doc, "Председатель комиссии по проведению специальной оценки условий труда:")
-    _par(doc, "Генеральный директор _______________ / Блашковский Евгений Геннадьевич /")
-    _par(doc, "")
-    _par(doc, "Члены комиссии по проведению специальной оценки условий труда:")
-    _par(doc, "Руководитель группы документационного сопровождения _______________ / Спичак Татьяна Владимировна /")
-    _par(doc, "Специалист по кадрам _______________ / Максимова Людмила Викторовна /")
-    _par(doc, "")
-
-    _par(doc, "Примечание: отчества членов комиссии Татьяны Владимировны Спичак и Людмилы Викторовны Максимовой приведены по имеющимся в организации документам; в случае расхождений организация уточнит отчества по паспортным данным при подписании.",
-         italic=True, size=9)
-    _par(doc, "")
-
-    # ---------- Section 2 (new): Приложение 2 — A4 ALBUM ----------
-    new_sec = doc.add_section(WD_SECTION.NEW_PAGE)
-    _set_section_A4_landscape(new_sec)
-
-    _par(doc, "Приложение № 2", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, size=12)
-    _par(doc, f"Сведения о работниках, фактически предоставляемых работникам гарантиях и компенсациях, производственных характеристиках рабочих мест, подлежащих специальной оценке условий труда в {ORG['short']}, по состоянию на 11.02.2026",
-         bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, size=10)
-    _par(doc, "")
-
-    # 21 column layout as TE template
-    # Column widths (cm) for landscape A4 (~27cm usable width)
-    COLS = [
-        ("№ п/п",                                          0.7),
-        ("Подразделение организации",                      2.0),
-        ("Наименование должности, профессии (в соответствии со штатным расписанием)", 3.0),
-        ("ФИО работника (по усмотрению заказчика)",       2.2),
-        ("Страховой номер ПФР (СНИЛС)",                    2.2),
-        ("*Количество аналогичных РМ",                     0.9),
-        ("*Используемое оборудование (тип, модель, год выпуска, инвентарный №), среднее время работы на оборудовании, %", 5.8),
-        ("Используемое сырье и материалы (наименование, марка)", 3.0),
-        ("Повышенная оплата труда (да/нет)",                0.9),
-        ("Ежегодный дополнительный оплачиваемый отпуск (да/нет)", 0.9),
-        ("Сокращенная продолжительность рабочего времени (да/нет)", 0.9),
-        ("Молоко или другие равноценные пищевые продукты (да/нет)", 0.9),
-        ("Лечебно-профилактическое питание (да/нет)",       0.9),
-        ("Право на досрочное назначение трудовой пенсии (да/нет)", 0.9),
-        ("Случаи травматизма (да/нет)",                    0.9),
-        ("Проф. заболевания (да/нет)",                     0.9),
-        ("Место выполнения работ (рабочая зона), процент пребывания работника в рабочей зоне от общего рабочего времени", 5.5),
-        ("Класс условий труда по результатам предыдущей СОУТ / № РМ", 2.0),
-        ("Женщины",                                         0.8),
-        ("Инвалиды, допущенные к работе",                   0.8),
-        ("Подростки, допущенные к работе",                  0.8),
-        ("Проведение медицинских осмотров (№ пункта приказа 29н)", 1.8),
+    headers = [
+        ("№\nп/п", 0.55),
+        ("Подразделение организации", 1.45),
+        ("Наименование должности, профессии\n(в соответствии со штатным расписанием)", 2.25),
+        ("ФИО работника\n(по усмотрению заказчика)", 1.65),
+        ("Страховой номер\nПФР работника (СНИЛС)", 1.65),
+        ("Количество аналогичных рабочих мест", 0.85),
+        ("Используемое оборудование* (тип, модель, год выпуска, инвентарный №), среднее время "
+         "работы на оборудовании, %", 5.15),
+        ("Используемое сырье и материалы (наименование, марка)", 2.75),
+        ("Повышенная оплата труда (да/нет)", 0.72),
+        ("Ежегодный дополнительный оплачиваемый отпуск (да/нет)", 0.72),
+        ("Сокращенная продолжительность рабочего времени (да/нет)", 0.72),
+        ("Молоко или другие равноценные пищевые продукты (да/нет)", 0.72),
+        ("Лечебно-профилактическое питание (да/нет)", 0.72),
+        ("Право на досрочное назначение трудовой пенсии (да/нет)", 0.72),
+        ("Случаи травматизма (да/нет)", 0.72),
+        ("Проф. заболевания (да/нет)", 0.72),
+        ("Место выполнения работ (рабочая зона), процент пребывания работника в рабочей зоне "
+         "от общего рабочего времени", 4.35),
+        ("Класс условий труда по результатам предыдущей СОУТ / № рабочего места", 1.35),
+        ("Женщины", 0.6),
+        ("Инвалиды, допущенные к работе", 0.62),
+        ("Подростки, допущенные к работе", 0.62),
+        ("Проведение медицинских осмотров (№ пункта)", 1.2),
     ]
-    # total
-    total_w = sum(w for _,w in COLS)
+    NC = len(headers)
+    t2 = doc.add_table(rows=2 + len(ROWS), cols=NC)
 
-    t2 = doc.add_table(rows=3, cols=len(COLS))  # two header rows + first body
-    t2.autofit = False
-
-    # Row 0: group header for columns 8-13 "Гарантии и компенсации..."
-    # merge 8-13 (indices 8..13)
-    def merge_row(row, a, b):
-        # merge cells a..b in row
-        cell_a = row.cells[a]
-        for i in range(a+1, b+1):
-            cell_a = cell_a.merge(row.cells[i])
-        return cell_a
-
-    # First header row (top-level, shorter). We'll put group names here.
-    h0 = t2.rows[0]
-    # merge all top columns for simple headers that span both rows
-    # Strategy: we need TWO rows of headers:
-    #  Row 0 (group): № | Подразд | Должность | ФИО | СНИЛС | Аналог | Оборудование | Сырье | ========== Гарантии и компенсации, предоставляемые работнику за вредные условия труда (объединить 6 колонок) ========== | Травм | Профзаб | Зона | Класс пред СОУТ | Жен | Инв | Подр | Медосм
-    #  Row 1: names for each sub-column
-    # So first, merge all non-guarantee cells across 2 rows.
-
-    # Merge top cells for single-column headers (0-7, 14-21) vertically across rows 0-1
-    def vmerge(table, col, row1, row2):
-        c1 = table.cell(row1, col)
-        c2 = table.cell(row2, col)
-        c1.merge(c2)
-
-    # Vertical merges for single-column headers
-    for col in list(range(0,8)) + list(range(14, len(COLS))):
-        vmerge(t2, col, 0, 1)
-
-    # Horizontal merge for group title on row 0 across columns 8-13
-    grp = merge_row(h0, 8, 13)
+    # --- заголовок: 2 строки, 6 колонок гарантий объединены группой
+    for col in list(range(0, 8)) + list(range(14, NC)):
+        t2.cell(0, col).merge(t2.cell(1, col))
+    grp = t2.cell(0, 8)
+    for c in range(9, 14):
+        grp = grp.merge(t2.cell(0, c))
     write_cell(grp, "Гарантии и компенсации, предоставляемые работнику за вредные условия труда",
-               bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER)
-    set_cell_shading(grp)
-
-    # Fill top-level (vertically merged) cells
-    for col,(name,w) in enumerate(COLS):
-        if col in range(8,14):
+               bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER, vertical=WD_ALIGN_VERTICAL.CENTER)
+    cell_shading(grp)
+    for col, _hdr in enumerate(headers):
+        if 8 <= col <= 13:
             continue
         cell = t2.cell(0, col)
-        write_cell(cell, name, bold=True, size=8, align=WD_ALIGN_PARAGRAPH.CENTER,
+        write_cell(cell, _hdr[0], bold=True, size=7, align=WD_ALIGN_PARAGRAPH.CENTER,
                    vertical=WD_ALIGN_VERTICAL.CENTER)
-        set_cell_shading(cell)
-
-    # Second header row: fill sub-headers only for the guarantee columns (8-13)
-    sub_titles = {
-        8: "Повышенная оплата труда",
-        9: "Ежегод. доп. отпуск",
-        10: "Сокращ. раб. время",
-        11: "Молоко / др. пищевые продукты",
-        12: "Лечебно-профилакт. питание",
-        13: "Право на досрочную пенсию",
-    }
-    for col, title in sub_titles.items():
-        cell = t2.rows[1].cells[col]
+        cell_shading(cell)
+    # компактные подписи: полные наименования граф бланка ТЭ вынесены в
+    # групповой заголовок и в примечание под таблицей — в колонке 0,72 см
+    # длинные слова не переносятся без разрыва
+    sub = {8: "Повыш. оплата труда", 9: "Доп. отпуск",
+           10: "Сокр. раб. время", 11: "Молоко",
+           12: "ЛПП", 13: "Досрочная пенсия"}
+    for col, title in sub.items():
+        cell = t2.cell(1, col)
         write_cell(cell, title, bold=True, size=7, align=WD_ALIGN_PARAGRAPH.CENTER,
                    vertical=WD_ALIGN_VERTICAL.CENTER)
-        set_cell_shading(cell)
+        cell_shading(cell)
+    row_is_header(t2.rows[0]); row_is_header(t2.rows[1])
 
-    # Also add shading to the remaining second-row cells? — they're already merged, shaded via top row.
-
-    # Set widths on all header cells
-    for col, (_, w) in enumerate(COLS):
-        for r in range(2):
-            try:
-                set_col_width(t2.cell(r, col), w)
-            except Exception:
-                pass
-
-    set_row_header(t2.rows[0])
-    set_row_header(t2.rows[1])
-
-    # Set text direction on narrow columns? (keep horizontal for simplicity; rely on small font)
-    # Now remove the empty third row we added initially
-    # Actually, let's leave it but repopulate with first worker:
-    # Better: remove 3rd row and append one by one
-    # Remove row 2 (initial empty)
-    tr_to_remove = t2.rows[2]._tr
-    tr_to_remove.getparent().remove(tr_to_remove)
-
-    # Append body rows
-    for idx, r in enumerate(ROWS, start=1):
-        (podr, dolg, fio, snils, analog, obor, syrye,
-         travm, prof, zona, klass, female, inv, podr_flag,
-         pov_opl, dop_otp, sokr, moloko, lpp, penz, med) = r
-        row = t2.add_row()
-        vals = [str(idx), podr, dolg, fio, snils, analog, obor, syrye,
-                pov_opl, dop_otp, sokr, moloko, lpp, penz,
-                travm, prof, zona, klass, female, inv, podr_flag, med]
+    # --- данные
+    CENTER = (0, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20)
+    for i, r in enumerate(ROWS, start=1):
+        (podr, dolg, fio, snils, analog, obor, syrye, travm, prof, zona, klass,
+         female, inv, podrost, pov_opl, dop_otp, sokr, moloko, lpp, penz, med) = r
+        vals = [str(i), podr, dolg, fio, snils, analog, obor, syrye,
+                pov_opl, dop_otp, sokr, moloko, lpp, penz, travm, prof, zona, klass,
+                female, inv, podrost, med]
+        row = t2.rows[2 + i - 1]
         for col, v in enumerate(vals):
-            c = row.cells[col]
-            # Determine alignment and size
-            align = WD_ALIGN_PARAGRAPH.CENTER if col in (0,4,5,8,9,10,11,12,13,14,15,18,19,20) else WD_ALIGN_PARAGRAPH.LEFT
-            size = 8 if col in (0,4,5,8,9,10,11,12,13,14,15,18,19,20,21) else 7
-            write_cell(c, v, size=size, align=align, vertical=WD_ALIGN_VERTICAL.TOP)
-            set_col_width(c, COLS[col][1])
+            write_cell(row.cells[col], v, size=8 if col in CENTER else 7,
+                       align=WD_ALIGN_PARAGRAPH.CENTER if col in CENTER else WD_ALIGN_PARAGRAPH.LEFT,
+                       vertical=WD_ALIGN_VERTICAL.TOP)
 
-    _par(doc, "")
-    p = doc.add_paragraph()
-    _run(p,
-         "* Для рабочих мест водителей автомобиля дополнительно указывается гос. номер автомобиля, категория транспортного средства и вид топлива. "
-         "Для остальных рабочих мест — тип, модель, год выпуска и инвентарный номер оборудования. Поля, отмеченные [уточнить], будут уточнены организацией при подписании экземпляра на бумаге.",
-         size=8, italic=True)
-    _par(doc, "")
-    _par(doc, "Председатель комиссии по проведению специальной оценки условий труда _______________ / Блашковский Евгений Геннадьевич /", size=10)
-    _par(doc, "")
+    apply_layout(t2, [w for _, w in headers], u2, cell_mar_cm=0.06)
+
+    _par(doc, "* Для рабочих мест водителей автомобиля дополнительно указывается гос. номер "
+              "автомобиля, категория транспортного средства и вид топлива.", size=8, italic=True,
+         space_before=6, space_after=0)
+    _par(doc, "Сокращения в графах блока «Гарантии и компенсации»: Пов. оплата труда — повышенная "
+              "оплата труда; Доп. отпуск — ежегодный дополнительный оплачиваемый отпуск; Сокр. раб. "
+              "время — сокращенная продолжительность рабочего времени; Молоко — молоко или другие "
+              "равноценные пищевые продукты; ЛПП — лечебно-профилактическое питание; Досрочная пенсия "
+              "— право на досрочное назначение трудовой пенсии. Все графы — да/нет.",
+         size=8, italic=True, space_after=0)
+    _par(doc, "Пометки [уточнить] носят информационный характер и будут закрыты организацией "
+              "по факту при подписании экземпляра.", size=8, italic=True, space_after=4)
+    _par(doc, "Председатель комиссии по проведению специальной оценки условий труда "
+              "_________________ / " + ORG["dir"] + " /", size=10, space_before=8)
+
+    # ================= ПРИЛОЖЕНИЯ № 3 и № 4 (книжная) =================
+    sec3 = doc.add_section(WD_SECTION.NEW_PAGE)
+    set_page(sec3, landscape=False, margin_lr=1.8, margin_tb=1.5)
+    u3 = usable_width(sec3)
+
+    _par(doc, "Приложение № 3", bold=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
+    _par(doc, f"Сведения об обязанностях работника в {ORG['short']} по состоянию на 11.02.2026",
+         bold=True, size=10, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=6)
+    t3 = doc.add_table(rows=1 + len(DUTIES), cols=4)
+    for i, h in enumerate(["№\nп/п", "Подразделение организации", "Наименование должности, профессии",
+                           "Краткое описание работы"]):
+        c = t3.rows[0].cells[i]
+        write_cell(c, h, bold=True, size=9, align=WD_ALIGN_PARAGRAPH.CENTER,
+                   vertical=WD_ALIGN_VERTICAL.CENTER)
+        cell_shading(c)
+    row_is_header(t3.rows[0])
+    for i, (podr, dolg, desc) in enumerate(DUTIES, start=1):
+        row = t3.rows[i]
+        for j, v in enumerate([str(i), podr, dolg, desc]):
+            write_cell(row.cells[j], v, size=9,
+                       align=WD_ALIGN_PARAGRAPH.CENTER if j == 0 else WD_ALIGN_PARAGRAPH.LEFT,
+                       vertical=WD_ALIGN_VERTICAL.TOP)
+    apply_layout(t3, [0.8, 2.9, 3.9, 9.8], u3, cell_mar_cm=0.15)
+    _par(doc, "Председатель комиссии по проведению специальной оценки условий труда "
+              "_________________ / " + ORG["dir"] + " /", size=10, space_before=8)
+    doc.add_page_break()
+
+    _par(doc, "Приложение № 4", bold=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
+    _par(doc, "Сведения о предложениях работников по осуществлению на их рабочих местах "
+              "идентификации потенциально вредных и (или) опасных производственных факторов",
+         bold=True, size=10, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=8)
+    _par(doc,
+         "В соответствии с Федеральным законом от 28.12.2013 № 426-ФЗ «О специальной оценке условий "
+         "труда» и в целях соблюдения прав работников при проведении СОУТ комиссией по проведению "
+         "специальной оценки условий труда ООО «МИР» был проведен опрос работников по вопросу "
+         "идентификации потенциально вредных и (или) опасных производственных факторов на их "
+         "рабочих местах.")
+    _par(doc, "Предложений от работников не поступало.", bold=True)
+    _par(doc, "", space_after=6)
+    _par(doc, "Председатель комиссии по проведению специальной оценки условий труда:", space_after=2)
+    _par(doc, "Генеральный директор _________________________ / " + ORG["dir"] + " /", space_after=6)
+    _par(doc, "Члены комиссии по проведению специальной оценки условий труда:", space_after=2)
+    for dol, fio in COMMISSION:
+        _par(doc, f"{dol} _________________________ / {fio} /", space_after=2)
+    _par(doc, "Примечание: отчества членов комиссии будут сверены по паспортным данным при "
+              "подписании бумажного экземпляра.", size=9, italic=True, space_before=6)
 
     doc.save(OUT)
     print("SAVED:", OUT)
+    report_layout(OUT)
+
+
+def report_layout(path):
+    """Самопроверка вёрстки: влезает ли таблица в полосу, какова высота строк."""
+    d = Document(path)
+    for i, s_ in enumerate(d.sections):
+        uw = usable_width(s_)
+        uh = (int(s_.page_height) - int(s_.top_margin) - int(s_.bottom_margin)) / 360000
+        print(f"  секция {i}: {'альбом' if s_.orientation else 'книжная'}, "
+              f"полоса {uw:.2f} × {uh:.2f} см")
+    for ti, t in enumerate(d.tables, 1):
+        grid = t._tbl.find(qn('w:tblGrid'))
+        gc = [int(g.get(qn('w:w'))) for g in grid.findall(qn('w:gridCol'))]
+        print(f"  таблица {ti}: колонок {len(gc)}, ширина сетки {sum(gc)/567:.2f} см")
+        if len(gc) > 10:
+            cw = [g / 567 for g in gc]
+            mx, worst = 0, None
+            for ri, row in enumerate(t.rows):
+                lines = 0
+                for ci, c in enumerate(row.cells):
+                    sz = 8
+                    for p in c.paragraphs:
+                        for r in p.runs:
+                            if r.font.size:
+                                sz = r.font.size.pt
+                        break
+                    per = max(1, int(max(0.25, cw[ci] - 0.12) / (sz * 0.01764 * 0.52)))
+                    n = max(1, -(-len(c.text) // per))
+                    lines = max(lines, n)
+                if lines > mx:
+                    mx, worst = lines, ri
+            print(f"     максимум строк текста в ячейке (оценка): {mx} — строка {worst}, "
+                  f"высота ~{mx * 7 * 1.15 / 72 * 2.54:.1f} см")
 
 
 if __name__ == "__main__":
