@@ -19,7 +19,7 @@ import os
 import re
 
 from docx import Document
-from docx.enum.section import WD_SECTION
+from docx.enum.section import WD_ORIENT, WD_SECTION
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
@@ -27,6 +27,23 @@ from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
 BASE = os.path.dirname(os.path.abspath(__file__))
+LANDSCAPE_APPS = {11, 12, 13, 14, 15, 20}   # широкие журналы и реестры — альбомная ориентация
+
+
+def switch_section(doc, landscape):
+    """Новый раздел с нужной ориентацией (альбомная — для широких таблиц)."""
+    sec = doc.add_section(WD_SECTION.NEW_PAGE)
+    if landscape:
+        sec.orientation = WD_ORIENT.LANDSCAPE
+        sec.page_width, sec.page_height = Cm(29.7), Cm(21.0)
+        sec.top_margin = sec.bottom_margin = Cm(1.5)
+        sec.left_margin, sec.right_margin = Cm(1.5), Cm(1.2)
+    else:
+        sec.orientation = WD_ORIENT.PORTRAIT
+        sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
+        sec.top_margin = sec.bottom_margin = Cm(2.0)
+        sec.left_margin, sec.right_margin = Cm(2.8), Cm(1.5)
+    return sec
 SRC = os.path.join(BASE, "ПОЛОЖЕНИЕ_ОБ_ОБРАБОТКЕ_ПДН_ООО_МИР_v1.0.md")
 DST = os.path.join(BASE, "ПОЛОЖЕНИЕ_ОБ_ОБРАБОТКЕ_ПДН_ООО_МИР_v1.0.docx")
 
@@ -294,6 +311,7 @@ def build():
     # ---------- тело ----------
     i = 0
     n = len(lines)
+    landscape_now = False
     while i < n:
         raw = lines[i]
         line = raw.rstrip()
@@ -308,7 +326,12 @@ def build():
             if title.startswith("ПОЛОЖЕНИЕ об обработке"):
                 i += 1
                 continue  # титул уже собран
-            if title.startswith("ПРИЛОЖЕНИЯ"):
+            if title.startswith("ПРИМЕЧАНИЯ"):
+                if landscape_now:
+                    switch_section(doc, False)
+                    landscape_now = False
+                heading(doc, "ПРИМЕЧАНИЯ К ВЫВЕРЕННОМУ ПРОЕКТУ", 1, page_break=True)
+            elif title.startswith("ПРИЛОЖЕНИЯ"):
                 heading(doc, "ПРИЛОЖЕНИЯ", 1, page_break=True)
             else:
                 heading(doc, title, 1, page_break=True)
@@ -316,7 +339,14 @@ def build():
             continue
         if s.startswith("## "):
             title = s[3:].strip()
-            pb = title.startswith("Приложение №") or title.startswith("ПРИМЕЧАНИЯ")
+            mapp = re.match(r"Приложение № (\d+)\.", title)
+            want_land = bool(mapp) and int(mapp.group(1)) in LANDSCAPE_APPS
+            if want_land != landscape_now:
+                switch_section(doc, want_land)
+                landscape_now = want_land
+                pb = False
+            else:
+                pb = title.startswith("Приложение №") or title.startswith("ПРИМЕЧАНИЯ")
             heading(doc, title, 2, page_break=pb)
             i += 1
             continue
